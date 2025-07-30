@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Usuários da aplicação
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Relacionamentos
+  accounts  Account[]
+  sessions  Session[]
+  files     File[]
+  messages  ChatMessage[]
+  documents Document[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  DocumentEditor DocumentEditor[]
+}
+
+/// Integração com NextAuth (contas externas)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+/// Sessões (NextAuth)
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Arquivos enviados pelo usuário
+model File {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String // pdf, image, audio, video
+  url       String // caminho no S3 ou Supabase Storage
+  size      Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Mensagens do chat com IA
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String?
+  role      String // "user" | "assistant" | "system"
+  content   String
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+/// Documento colaborativo (tipo Google Docs)
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   Json // armazenar estado do Yjs ou versão inicial
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  versions DocumentVersion[]
+  editors  DocumentEditor[]
+}
+
+/// Controle de versões de documentos
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  documentId String
+  content    Json
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+/// Editores em tempo real (para colaboração)
+model DocumentEditor {
+  id         String   @id @default(cuid())
+  userId     String
+  documentId String
+  role       String // "owner" | "editor" | "viewer"
+  joinedAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId]) // evitar duplicados
+}
