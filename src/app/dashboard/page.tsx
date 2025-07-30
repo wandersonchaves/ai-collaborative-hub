@@ -5,8 +5,6 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 
 export default async function DashboardPage() {
-  // 🔹 Aqui futuramente você buscará dados do Prisma
-  // Por enquanto, dados seedados simulados
   const documents = [
     { id: "1", title: "Documento Demo", updatedAt: new Date() },
   ];

@@ -1,19 +1,38 @@
+"use client";
+
 import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Header() {
+  const { data: session } = useSession();
+
   return (
     <header className="h-16 border-b flex items-center justify-between px-6 bg-white shadow-sm">
       <h2 className="text-lg font-semibold">Dashboard</h2>
+
       <div className="flex items-center gap-3">
-        <Image
-          src="https://i.pravatar.cc/40?img=1"
-          alt="User Avatar"
-          className="rounded-full"
-          width={40}
-          height={40}
-        />
-        <span className="text-sm">Admin User</span>
-        <button className="text-red-500 text-sm">Sair</button>
+        {session?.user ? (
+          <>
+            {session.user.image && (
+              <Image
+                src={session.user.image}
+                alt={session.user.name || "User Avatar"}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+            )}
+            <span className="text-sm">{session.user.name}</span>
+            <button
+              onClick={() => signOut()}
+              className="text-red-500 text-sm hover:underline"
+            >
+              Sair
+            </button>
+          </>
+        ) : (
+          <span className="text-sm text-gray-500">Carregando...</span>
+        )}
       </div>
     </header>
   );
