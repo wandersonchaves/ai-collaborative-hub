@@ -4,14 +4,21 @@ import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 
 export default function Header() {
-  const { data: session } = useSession();
-
+  const { data: session, status } = useSession();
   return (
     <header className="h-16 border-b flex items-center justify-between px-6 bg-white shadow-sm">
       <h2 className="text-lg font-semibold">Dashboard</h2>
 
       <div className="flex items-center gap-3">
-        {session?.user ? (
+        {status === "loading" && (
+          <span className="text-sm text-gray-400 animate-pulse">
+            Verificando sessão...
+          </span>
+        )}
+        {status === "unauthenticated" && (
+          <span className="text-sm text-gray-500">Não autenticado</span>
+        )}
+        {status === "authenticated" && session?.user && (
           <>
             {session.user.image && (
               <Image
@@ -30,8 +37,6 @@ export default function Header() {
               Sair
             </button>
           </>
-        ) : (
-          <span className="text-sm text-gray-500">Carregando...</span>
         )}
       </div>
     </header>

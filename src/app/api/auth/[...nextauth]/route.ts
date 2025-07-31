@@ -13,11 +13,12 @@ export const authOptions = {
       clientSecret: process.env.GITHUB_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/auth/signin",
   },
   session: {
-    strategy: "jwt" as const, // força ser literal em vez de string
+    strategy: "jwt" as const,
   },
 };
 
