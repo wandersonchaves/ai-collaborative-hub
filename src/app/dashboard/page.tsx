@@ -1,3 +1,4 @@
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import ChatBox, { type Message } from "./components/ChatBox";
 import DocumentList from "./components/DocumentList";
 import FileList from "./components/FileList";
@@ -21,27 +22,29 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="flex w-full">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <Header />
-        <main className="p-6 space-y-6 overflow-y-auto">
-          <section>
-            <h2 className="text-xl font-bold mb-2">📄 Documentos</h2>
-            <DocumentList documents={documents} />
-          </section>
+    <RequireAuth>
+      <div className="flex w-full">
+        <Sidebar />
+        <div className="flex flex-col flex-1">
+          <Header />
+          <main className="p-6 space-y-6 overflow-y-auto">
+            <section>
+              <h2 className="text-xl font-bold mb-2">📄 Documentos</h2>
+              <DocumentList documents={documents} />
+            </section>
 
-          <section>
-            <h2 className="text-xl font-bold mb-2">📂 Arquivos</h2>
-            <FileList files={files} />
-          </section>
+            <section>
+              <h2 className="text-xl font-bold mb-2">📂 Arquivos</h2>
+              <FileList files={files} />
+            </section>
 
-          <section>
-            <h2 className="text-xl font-bold mb-2">💬 Chat com IA</h2>
-            <ChatBox messages={messages} />
-          </section>
-        </main>
+            <section>
+              <h2 className="text-xl font-bold mb-2">💬 Chat com IA</h2>
+              <ChatBox messages={messages} />
+            </section>
+          </main>
+        </div>
       </div>
-    </div>
+    </RequireAuth>
   );
 }
