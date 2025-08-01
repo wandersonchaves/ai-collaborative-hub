@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <RequireAuth>
+    <RequireAuth allowedRoles={["admin", "editor"]}>
       <div className="flex w-full">
         <Sidebar />
         <div className="flex flex-col flex-1">

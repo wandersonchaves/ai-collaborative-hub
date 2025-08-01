@@ -21,6 +21,8 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  role          String    @default("viewer") // 🔹 novo campo
+  password      String? // 🔹 senha hash (bcrypt)
 
   // Relacionamentos
   accounts  Account[]

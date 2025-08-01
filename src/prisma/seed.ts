@@ -1,9 +1,12 @@
 import { PrismaClient } from "@/generated/prisma";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🚀 Seeding database...");
+
+  const passwordHash = await bcrypt.hash("123456", 10);
 
   // Usuário Admin
   const admin = await prisma.user.upsert({
@@ -14,11 +17,43 @@ async function main() {
       email: "admin@example.com",
       emailVerified: new Date(),
       image: "https://i.pravatar.cc/150?img=1",
+      role: "admin",
+      password: passwordHash,
     },
   });
 
-  // Documento de exemplo
-  const document = await prisma.document.create({
+  // Usuário Editor
+  const editor = await prisma.user.upsert({
+    where: { email: "editor@example.com" },
+    update: {},
+    create: {
+      name: "Editor User",
+      email: "editor@example.com",
+      emailVerified: new Date(),
+      image: "https://i.pravatar.cc/150?img=2",
+      role: "editor",
+      password: passwordHash,
+    },
+  });
+
+  // Usuário Viewer
+  const viewer = await prisma.user.upsert({
+    where: { email: "viewer@example.com" },
+    update: {},
+    create: {
+      name: "Viewer User",
+      email: "viewer@example.com",
+      emailVerified: new Date(),
+      image: "https://i.pravatar.cc/150?img=3",
+      role: "viewer",
+      password: passwordHash,
+    },
+  });
+
+  console.log("✅ Seed users created with default password: 123456");
+
+  // Documento de exemplo (criado pelo Admin)
+  await prisma.document.create({
     data: {
       title: "Documento Demo",
       content: {
@@ -52,18 +87,19 @@ async function main() {
         },
       },
       editors: {
-        create: {
-          userId: admin.id,
-          role: "owner",
-        },
+        create: [
+          { userId: admin.id, role: "owner" },
+          { userId: editor.id, role: "editor" },
+          { userId: viewer.id, role: "viewer" },
+        ],
       },
     },
   });
 
-  // Arquivo de exemplo
-  const file = await prisma.file.create({
+  // Arquivo de exemplo (upload pelo Editor)
+  await prisma.file.create({
     data: {
-      userId: admin.id,
+      userId: editor.id,
       name: "exemplo.pdf",
       type: "pdf",
       url: "https://example-bucket.s3.amazonaws.com/exemplo.pdf",
@@ -71,7 +107,7 @@ async function main() {
     },
   });
 
-  // Chat de exemplo (usuário conversando com IA)
+  // Chat de exemplo (Admin e IA)
   await prisma.chatMessage.createMany({
     data: [
       {
